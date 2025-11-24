@@ -1,0 +1,2574 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analisis Ulangan Harian</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .header h2 {
+            margin: 0;
+            color: #764ba2;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin: 0 0 20px 0;
+            color: #667eea;
+            font-size: 24px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: monospace;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 968px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(113, 128, 150, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        table tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        table tr:hover {
+            background: #edf2f7;
+        }
+
+        .correct {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .difficulty-mudah {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .difficulty-sedang {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .difficulty-sulit {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid #48bb78;
+        }
+
+        .toast.error {
+            border-left: 4px solid #f56565;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .nav-tab:hover {
+            color: #667eea;
+        }
+
+        .analysis-section {
+            margin-top: 30px;
+        }
+
+        .question-analysis {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .question-analysis h5 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+
+        .analysis-detail {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .analysis-detail div {
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .history-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .history-item h4 {
+            margin: 0 0 5px 0;
+            color: #667eea;
+        }
+
+        .history-item p {
+            margin: 0;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .delete-btn {
+            float: right;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .preview-section {
+            margin-bottom: 40px;
+        }
+
+        .preview-section h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .info-table {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-table p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .rank-1 {
+            background: #ffd700;
+            color: #7c2d12;
+        }
+
+        .rank-2 {
+            background: #c0c0c0;
+            color: #1a202c;
+        }
+
+        .rank-3 {
+            background: #cd7f32;
+            color: #fff;
+        }
+
+        .rank-other {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .info-item {
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+
+        .info-item strong {
+            color: #667eea;
+        }
+
+        .print-preview {
+            background: white;
+            max-width: 210mm;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .print-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            page-break-after: always;
+            position: relative;
+        }
+
+        .print-cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 257mm;
+            border: 3px solid #667eea;
+            padding: 40px;
+        }
+
+        .print-cover-logo {
+            margin-bottom: 30px;
+        }
+
+        .print-cover-logo img {
+            width: 120px;
+            height: auto;
+        }
+
+        .print-cover-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .print-cover-subtitle {
+            font-size: 22px;
+            color: #764ba2;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .print-cover-info {
+            margin-top: 40px;
+            font-size: 16px;
+            line-height: 2;
+        }
+
+        .print-cover-info p {
+            margin: 10px 0;
+        }
+
+        .print-content-page {
+            font-size: 12px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .print-content-page h3 {
+            font-size: 16px;
+            text-align: center;
+            color: #667eea;
+            margin: 0 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .print-content-page h4 {
+            font-size: 14px;
+            color: #667eea;
+            margin: 15px 0 10px 0;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 11px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .print-table th,
+        .print-table td {
+            border: 1px solid #333;
+            padding: 4px;
+            text-align: left;
+        }
+
+        .print-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .print-info-box {
+            background: #f7fafc;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            font-size: 12px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .print-info-box p {
+            margin: 5px 0;
+        }
+
+        .print-signature {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .print-signature-left,
+        .print-signature-right {
+            text-align: center;
+            width: 45%;
+        }
+
+        .print-signature-name {
+            margin-top: 60px;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .print-export-btn {
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            
+            body > *:not(#tab-preview):not(#preview-content):not(.print-preview):not(.print-page) {
+                display: none !important;
+            }
+            
+            .container, .header, .card, .nav-tabs, h3, .print-export-btn {
+                display: none !important;
+            }
+            
+            .print-page {
+                margin: 0;
+                box-shadow: none;
+                page-break-after: always;
+                display: block !important;
+            }
+            
+            .print-preview {
+                max-width: 100%;
+                box-shadow: none;
+            }
+        }
+
+        .instruction-box {
+            background: #e6fffa;
+            border: 2px solid #48bb78;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .instruction-box h5 {
+            margin: 0 0 10px 0;
+            color: #22543d;
+            font-size: 16px;
+        }
+
+        .instruction-box ol {
+            margin: 10px 0 0 20px;
+            padding: 0;
+            color: #22543d;
+        }
+
+        .instruction-box li {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .mode-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .mode-pg {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .mode-essay {
+            background: #fbd38d;
+            color: #7c2d12;
+        }
+
+        .jawaban-cell {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px 4px;
+            font-size: 11px;
+        }
+
+        .jawaban-benar {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .jawaban-salah {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .jawaban-kosong {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="header">
+    <h1 id="nama-sekolah">SMA TAKHASSUS AL QUR'AN WONOSOBO</h1>
+    <h2 id="judul-aplikasi">ANALISIS ULANGAN HARIAN</h2>
+   </div>
+   <div class="card">
+    <div class="nav-tabs"><button class="nav-tab active" id="tab-btn-input" onclick="showTab('input')">Input Data</button> <button class="nav-tab" id="tab-btn-history" onclick="showTab('history')">Riwayat Analisis</button> <button class="nav-tab" id="tab-btn-preview" onclick="showTab('preview')">Preview &amp; Copy Data</button>
+    </div>
+    <div id="tab-input">
+     <h3>     Form Input Data Ulangan</h3>
+     <form id="form-identitas" onsubmit="handleSubmitIdentitas(event)">
+      <div class="form-grid">
+       <div class="form-column">
+        <div class="form-group"><label for="nama-guru">Nama Guru Mapel</label> <input type="text" id="nama-guru" required placeholder="Masukkan nama guru">
+        </div>
+        <div class="form-group"><label for="nama-mapel">Nama Mata Pelajaran</label> <input type="text" id="nama-mapel" required placeholder="Contoh: Matematika">
+        </div>
+        <div class="form-group"><label for="nama-kelas">Nama Kelas</label> <input type="text" id="nama-kelas" required placeholder="Contoh: X IPA 1">
+        </div>
+        <div class="form-group"><label for="jenis-penilaian">Jenis Penilaian</label> <select id="jenis-penilaian" required> <option value="">Pilih jenis penilaian</option> <option value="Ulangan Harian 1">Ulangan Harian 1</option> <option value="Ulangan Harian 2">Ulangan Harian 2</option> <option value="Ulangan Harian 3">Ulangan Harian 3</option> <option value="Ulangan Tengah Semester">Ulangan Tengah Semester</option> <option value="Ulangan Akhir Semester">Ulangan Akhir Semester</option> </select>
+        </div>
+        <div class="form-group"><label for="mode-soal">Mode Soal</label> <select id="mode-soal" required onchange="handleModeChange()"> <option value="">Pilih mode soal</option> <option value="pilihan_ganda">Pilihan Ganda (A, B, C, D, E)</option> <option value="essay">Essay / Skor (Angka 0-100)</option> </select> <small style="color: #718096; display: block; margin-top: 5px;"> <strong>Pilihan Ganda:</strong> Kunci &amp; Jawaban pakai huruf A-E<br><strong>Essay:</strong> Kunci = skor maksimal tiap soal, Jawaban = skor yang didapat </small>
+        </div>
+        <div class="form-group"><label for="kkm">KKM (Kriteria Ketuntasan Minimal)</label> <input type="number" id="kkm" required placeholder="Contoh: 75" min="0" max="100"> <small style="color: #718096;">Masukkan nilai KKM (0-100). Contoh: 75</small>
+        </div>
+        <div class="form-group"><label for="batas-ketuntasan">Batas Ketuntasan Klasikal &amp; KD (%)</label> <input type="number" id="batas-ketuntasan" required placeholder="Contoh: 75" min="0" max="100" value="75"> <small style="color: #718096;">Batas prosentase ketuntasan untuk Klasikal dan KD (0-100). Default: 75%. Jika ketuntasan ≥ nilai ini = TUNTAS, jika &lt; nilai ini = REMEDIAL</small>
+        </div>
+       </div>
+       <div class="form-column">
+        <div class="form-group">
+         <div class="file-input-wrapper"><input type="file" id="file-excel" accept=".xlsx,.xls"> <label for="file-excel" class="file-input-label">📁 Import dari Excel (3 Sheet)</label>
+         </div><small style="color: #718096; display: block; margin-top: 5px;"> <strong>Format Excel (3 Sheet):</strong><br>
+           • <strong>Sheet 1 (Kunci):</strong> Baris 1 = Header, Baris 2 = Kunci jawaban HORIZONTAL<br>
+           &nbsp;&nbsp;- <strong>Pilihan Ganda:</strong> A B C D E...<br>
+           &nbsp;&nbsp;- <strong>Essay:</strong> 10 15 20 10... (skor maksimal tiap soal)<br>
+           • <strong>Sheet 2 (KD):</strong> Baris 1 = Header, Baris 2 dst = Data (Kode | Keterangan | No Soal)<br>
+           • <strong>Sheet 3 (Jawaban):</strong> Baris 1 = Header, Baris 2 dst = Data<br>
+           &nbsp;&nbsp;- <strong>Pilihan Ganda:</strong> Nama | Kelas | A B C D E...<br>
+           &nbsp;&nbsp;- <strong>Essay:</strong> Nama | Kelas | 8 12 18 9... (skor yang didapat) </small>
+        </div>
+        <div class="form-group"><label for="kunci-jawaban" id="label-kunci">Kunci Jawaban (Maksimal 30 soal)</label> <textarea id="kunci-jawaban" placeholder="Pilih mode soal terlebih dahulu..." required style="min-height: 80px;"></textarea> <small id="help-kunci" style="color: #718096;">Pilih mode soal terlebih dahulu</small>
+        </div>
+        <div class="form-group"><label for="data-kd">Data Kompetensi Dasar (KD)</label> <textarea id="data-kd" placeholder="Format: Kode KD|Nama KD|Nomor Soal (pisahkan dengan koma)
+Contoh:
+3.1|Memahami konsep bilangan|1,2,3,4,5
+3.2|Menerapkan operasi aljabar|6,7,8,9,10" style="min-height: 80px;"></textarea> <small style="color: #718096;"> <strong>Format per baris:</strong> Kode KD | Nama KD | Nomor Soal (pisahkan dengan koma)<br><strong>Contoh:</strong> 3.1|Memahami konsep bilangan|1,2,3,4,5 </small>
+        </div>
+        <div class="form-group"><label for="data-siswa-manual" id="label-siswa">Data Siswa (Format: Nama|Kelas|Jawaban, pisahkan dengan enter)</label> <textarea id="data-siswa-manual" placeholder="Pilih mode soal terlebih dahulu..." required style="min-height: 80px;"></textarea> <small id="help-siswa" style="color: #718096;">Pilih mode soal terlebih dahulu</small>
+        </div>
+       </div>
+      </div>
+      <div style="text-align: center; margin-top: 20px;"><button type="submit" class="btn btn-primary" id="btn-submit"> 💾 Simpan dan Analisis </button>
+      </div>
+     </form>
+    </div>
+    <div id="tab-history" class="hidden">
+     <h3>📚 Riwayat Analisis</h3>
+     <div id="history-list"></div>
+     <div id="detail-analysis" class="hidden" style="margin-top: 30px;"><button class="btn btn-secondary" onclick="closeDetailAnalysis()" style="margin-bottom: 15px;"> ← Kembali ke Daftar Riwayat </button>
+      <div class="pagination" style="margin-bottom: 20px;"><button class="btn btn-secondary" onclick="changeAnalysisPage('prev')">← Sebelumnya</button> <span id="page-indicator" style="font-weight: bold; color: #667eea; margin: 0 15px;"></span> <button class="btn btn-secondary" onclick="changeAnalysisPage('next')">Berikutnya →</button>
+      </div>
+      <div id="analysis-page-1" class="analysis-page" style="display: none;">
+       <div class="card" style="background: #f7fafc; padding: 20px; max-height: 70vh; overflow-y: auto;">
+        <h4 style="color: #667eea; margin: 0 0 15px 0;">📋 Informasi Ulangan</h4>
+        <div id="info-ulangan"></div>
+       </div>
+      </div>
+      <div id="analysis-page-2" class="analysis-page" style="display: none;">
+       <div class="card" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+        <h4 style="color: #667eea; margin: 0 0 15px 0;">📊 Hasil Siswa</h4>
+        <div id="table-siswa"></div>
+        <div id="pagination-siswa" style="margin-top: 20px; text-align: center;"></div>
+       </div>
+      </div>
+      <div id="analysis-page-3" class="analysis-page" style="display: none;">
+       <div class="card" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+        <h4 style="color: #667eea; margin: 0 0 15px 0;">🔍 Analisis Butir Soal (Tingkat Kesukaran)</h4>
+        <div id="table-butir-soal"></div>
+        <div id="pagination-butir" style="margin-top: 20px; text-align: center;"></div>
+       </div>
+      </div>
+      <div id="analysis-page-4" class="analysis-page" style="display: none;">
+       <div class="card" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+        <h4 style="color: #667eea; margin: 0 0 15px 0;">⚡ Analisis Daya Pembeda Soal</h4>
+        <div id="table-daya-pembeda"></div>
+       </div>
+      </div>
+      <div id="analysis-page-5" class="analysis-page" style="display: none;">
+       <div class="card" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+        <h4 style="color: #667eea; margin: 0 0 15px 0;">📚 Analisis Ketuntasan Kompetensi Dasar (KD)</h4>
+        <div id="table-analisis-kd"></div>
+        <div style="margin-top: 30px; padding: 20px; background: #f7fafc; border-left: 4px solid #667eea;">
+         <h5 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px;">    RINGKASAN KETUNTASAN KD</h5>
+         <div id="ringkasan-kd"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div id="tab-preview" class="hidden">
+     <h3>📋 Preview Laporan Cetak (A4)</h3>
+     <div id="preview-content">
+      <p style="text-align: center; color: #718096;">Pilih data dari Riwayat Analisis untuk melihat preview</p>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+        const defaultConfig = {
+            nama_sekolah: "SMA TAKHASSUS AL QUR'AN WONOSOBO",
+            judul_aplikasi: "ANALISIS ULANGAN HARIAN"
+        };
+
+        let currentData = null;
+        let allAnalysisData = [];
+        let sdkInitialized = false;
+        let useLocalStorage = false;
+        let currentAnalysisPage = 1;
+        let totalAnalysisPages = 3;
+
+        const dataHandler = {
+            onDataChanged(data) {
+                allAnalysisData = data;
+                renderHistory();
+            }
+        };
+
+        function loadFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('analisis_ulangan_data');
+                if (stored) {
+                    allAnalysisData = JSON.parse(stored);
+                    renderHistory();
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+            }
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('analisis_ulangan_data', JSON.stringify(allAnalysisData));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        async function initApp() {
+            try {
+                if (window.dataSdk) {
+                    const initResult = await window.dataSdk.init(dataHandler);
+                    if (initResult.isOk) {
+                        sdkInitialized = true;
+                        useLocalStorage = false;
+                        console.log('✅ Data SDK berhasil diinisialisasi');
+                    } else {
+                        throw new Error('SDK init failed');
+                    }
+                } else {
+                    throw new Error('SDK not available');
+                }
+            } catch (error) {
+                console.warn('⚠️ SDK tidak tersedia, menggunakan localStorage sebagai fallback');
+                useLocalStorage = true;
+                sdkInitialized = true;
+                loadFromLocalStorage();
+                showToast('📦 Menggunakan penyimpanan lokal browser', 'success');
+            }
+
+            if (window.elementSdk) {
+                try {
+                    window.elementSdk.init({
+                        defaultConfig,
+                        onConfigChange: async (config) => {
+                            document.getElementById('nama-sekolah').textContent = 
+                                config.nama_sekolah || defaultConfig.nama_sekolah;
+                            document.getElementById('judul-aplikasi').textContent = 
+                                config.judul_aplikasi || defaultConfig.judul_aplikasi;
+                        },
+                        mapToCapabilities: (config) => ({
+                            recolorables: [],
+                            borderables: [],
+                            fontEditable: undefined,
+                            fontSizeable: undefined
+                        }),
+                        mapToEditPanelValues: (config) => new Map([
+                            ["nama_sekolah", config.nama_sekolah || defaultConfig.nama_sekolah],
+                            ["judul_aplikasi", config.judul_aplikasi || defaultConfig.judul_aplikasi]
+                        ])
+                    });
+                } catch (error) {
+                    console.warn('Element SDK not available');
+                }
+            }
+        }
+
+        function handleModeChange() {
+            const mode = document.getElementById('mode-soal').value;
+            const labelKunci = document.getElementById('label-kunci');
+            const helpKunci = document.getElementById('help-kunci');
+            const kunciInput = document.getElementById('kunci-jawaban');
+            const labelSiswa = document.getElementById('label-siswa');
+            const helpSiswa = document.getElementById('help-siswa');
+            const siswaInput = document.getElementById('data-siswa-manual');
+
+            if (mode === 'pilihan_ganda') {
+                labelKunci.textContent = 'Kunci Jawaban - Pilihan Ganda (Maksimal 30 soal)';
+                helpKunci.innerHTML = '<strong>Format:</strong> Huruf A, B, C, D, atau E tanpa spasi. <strong>Contoh:</strong> ABCDEABCDE';
+                kunciInput.placeholder = 'Masukkan kunci jawaban (A-E), contoh: ABCDEABCDE...';
+                
+                labelSiswa.textContent = 'Data Siswa - Pilihan Ganda (Format: Nama|Kelas|Jawaban, pisahkan dengan enter)';
+                helpSiswa.innerHTML = '<strong>Contoh:</strong><br>Ahmad|X IPA 1|ABCDEABCDE<br>Budi|X IPA 1|BACDEABCDE';
+                siswaInput.placeholder = 'Contoh:\nAhmad|X IPA 1|ABCDEABCDE\nBudi|X IPA 1|BACDEABCDE';
+                
+            } else if (mode === 'essay') {
+                labelKunci.textContent = 'Kunci Jawaban - Essay (Skor Maksimal Tiap Soal, Maksimal 30 soal)';
+                helpKunci.innerHTML = '<strong>Format:</strong> Angka skor maksimal tiap soal, pisahkan dengan koma. <strong>Contoh:</strong> 10,15,20,10,15';
+                kunciInput.placeholder = 'Masukkan skor maksimal tiap soal, contoh: 10,15,20,10,15...';
+                
+                labelSiswa.textContent = 'Data Siswa - Essay (Format: Nama|Kelas|Skor, pisahkan dengan enter)';
+                helpSiswa.innerHTML = '<strong>Contoh:</strong><br>Ahmad|X IPA 1|8,12,18,9,14<br>Budi|X IPA 1|10,15,20,10,15';
+                siswaInput.placeholder = 'Contoh:\nAhmad|X IPA 1|8,12,18,9,14\nBudi|X IPA 1|10,15,20,10,15';
+            } else {
+                labelKunci.textContent = 'Kunci Jawaban (Maksimal 30 soal)';
+                helpKunci.textContent = 'Pilih mode soal terlebih dahulu';
+                kunciInput.placeholder = 'Pilih mode soal terlebih dahulu...';
+                
+                labelSiswa.textContent = 'Data Siswa (Format: Nama|Kelas|Jawaban, pisahkan dengan enter)';
+                helpSiswa.textContent = 'Pilih mode soal terlebih dahulu';
+                siswaInput.placeholder = 'Pilih mode soal terlebih dahulu...';
+            }
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById('tab-input').classList.add('hidden');
+            document.getElementById('tab-history').classList.add('hidden');
+            document.getElementById('tab-preview').classList.add('hidden');
+            
+            if (tab === 'input') {
+                document.getElementById('tab-btn-input').classList.add('active');
+                document.getElementById('tab-input').classList.remove('hidden');
+            } else if (tab === 'history') {
+                document.getElementById('tab-btn-history').classList.add('active');
+                document.getElementById('tab-history').classList.remove('hidden');
+            } else if (tab === 'preview') {
+                document.getElementById('tab-btn-preview').classList.add('active');
+                document.getElementById('tab-preview').classList.remove('hidden');
+            }
+        }
+
+        async function handleSubmitIdentitas(event) {
+            event.preventDefault();
+            
+            if (!sdkInitialized) {
+                showToast('⏳ Aplikasi sedang diinisialisasi, tunggu sebentar...', 'error');
+                return;
+            }
+            
+            if (allAnalysisData.length >= 999) {
+                showToast('Maksimal 999 data analisis tercapai. Hapus beberapa data terlebih dahulu.', 'error');
+                return;
+            }
+
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="loading"></span> Memproses...';
+
+            const namaGuru = document.getElementById('nama-guru').value;
+            const namaMapel = document.getElementById('nama-mapel').value;
+            const namaKelas = document.getElementById('nama-kelas').value;
+            const jenisPenilaian = document.getElementById('jenis-penilaian').value;
+            const modeSoal = document.getElementById('mode-soal').value;
+            const kkm = Math.round(parseFloat(document.getElementById('kkm').value));
+            const batasKetuntasan = Math.round(parseFloat(document.getElementById('batas-ketuntasan').value));
+            const kunciJawaban = document.getElementById('kunci-jawaban').value.trim();
+            const dataKD = document.getElementById('data-kd').value;
+            const dataSiswaManual = document.getElementById('data-siswa-manual').value;
+
+            if (!modeSoal) {
+                showToast('Pilih mode soal terlebih dahulu!', 'error');
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                return;
+            }
+
+            let kunciArray = [];
+            if (modeSoal === 'pilihan_ganda') {
+                const kunciClean = kunciJawaban.toUpperCase().replace(/\s/g, '');
+                if (kunciClean.length > 30) {
+                    showToast('Kunci jawaban maksimal 30 soal!', 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                    return;
+                }
+                if (!/^[ABCDE]+$/.test(kunciClean)) {
+                    showToast('Kunci jawaban hanya boleh berisi huruf A, B, C, D, atau E!', 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                    return;
+                }
+                kunciArray = kunciClean.split('');
+            } else if (modeSoal === 'essay') {
+                const kunciParts = kunciJawaban.split(',').map(s => s.trim()).filter(s => s);
+                if (kunciParts.length > 30) {
+                    showToast('Kunci jawaban maksimal 30 soal!', 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                    return;
+                }
+                for (let i = 0; i < kunciParts.length; i++) {
+                    const skor = parseFloat(kunciParts[i]);
+                    if (isNaN(skor) || skor < 0 || skor > 100) {
+                        showToast(`Skor maksimal soal ${i+1} tidak valid! Harus angka 0-100.`, 'error');
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                        return;
+                    }
+                }
+                kunciArray = kunciParts;
+            }
+
+            if (!dataSiswaManual.trim()) {
+                showToast('Data siswa belum diisi!', 'error');
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                return;
+            }
+
+            const dataSiswaCompressed = dataSiswaManual.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+                .join('\n');
+
+            const dataToSave = {
+                id: Date.now().toString(),
+                guru: namaGuru,
+                mapel: namaMapel,
+                kelas: namaKelas,
+                jenis: jenisPenilaian,
+                mode: modeSoal,
+                kkm: kkm,
+                batas: batasKetuntasan,
+                kunci: kunciJawaban,
+                kd: dataKD.trim(),
+                siswa: dataSiswaCompressed,
+                tgl: new Date().toISOString()
+            };
+
+            try {
+                if (useLocalStorage) {
+                    allAnalysisData.push(dataToSave);
+                    saveToLocalStorage();
+                    renderHistory();
+                    showToast('✅ Data berhasil disimpan ke browser!', 'success');
+                    document.getElementById('form-identitas').reset();
+                    showTab('history');
+                } else {
+                    const result = await window.dataSdk.create(dataToSave);
+                    
+                    if (result.isOk) {
+                        showToast('✅ Data berhasil disimpan!', 'success');
+                        document.getElementById('form-identitas').reset();
+                        showTab('history');
+                    } else {
+                        showToast('❌ Gagal menyimpan: ' + (result.error?.message || 'Unknown error'), 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+            }
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('history-list');
+            
+            if (allAnalysisData.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #718096;">Belum ada riwayat analisis</p>';
+                return;
+            }
+
+            let html = '';
+            allAnalysisData.slice().reverse().forEach(item => {
+                const tanggal = new Date(item.tgl || item.tanggal).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const modeBadge = item.mode === 'pilihan_ganda' 
+                    ? '<span class="mode-badge mode-pg">PILIHAN GANDA</span>' 
+                    : '<span class="mode-badge mode-essay">ESSAY</span>';
+
+                html += `
+                    <div class="history-item" onclick="loadAnalysis('${item.id}')">
+                        <button class="btn btn-danger delete-btn" onclick="deleteAnalysis(event, '${item.id}')">🗑️ Hapus</button>
+                        <h4>${item.mapel || item.nama_mapel} - ${item.kelas || item.nama_kelas} ${modeBadge}</h4>
+                        <p><strong>Guru:</strong> ${item.guru || item.nama_guru}</p>
+                        <p><strong>Jenis:</strong> ${item.jenis || item.jenis_penilaian}</p>
+                        <p><strong>Tanggal:</strong> ${tanggal}</p>
+                    </div>
+                `;
+            });
+
+            historyList.innerHTML = html;
+        }
+
+        function loadAnalysis(id) {
+            const data = allAnalysisData.find(item => item.id === id);
+            if (!data) return;
+
+            currentData = data;
+            
+            document.getElementById('history-list').style.display = 'none';
+            document.getElementById('detail-analysis').classList.remove('hidden');
+            
+            currentAnalysisPage = 1;
+            
+            if (data.kd && data.kd.trim()) {
+                totalAnalysisPages = 5;
+            } else {
+                totalAnalysisPages = 4;
+            }
+            
+            renderAnalysisPage(currentAnalysisPage);
+            generatePreview(data);
+        }
+
+        function closeDetailAnalysis() {
+            document.getElementById('history-list').style.display = 'block';
+            document.getElementById('detail-analysis').classList.add('hidden');
+            currentData = null;
+        }
+
+        function changeAnalysisPage(direction) {
+            if (direction === 'prev' && currentAnalysisPage > 1) {
+                currentAnalysisPage--;
+            } else if (direction === 'next' && currentAnalysisPage < totalAnalysisPages) {
+                currentAnalysisPage++;
+            }
+            renderAnalysisPage(currentAnalysisPage);
+        }
+
+        function renderAnalysisPage(pageNum) {
+            document.querySelectorAll('.analysis-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            document.getElementById(`analysis-page-${pageNum}`).style.display = 'block';
+            
+            const pageIndicator = document.getElementById('page-indicator');
+            pageIndicator.textContent = `Halaman ${pageNum} dari ${totalAnalysisPages}`;
+            
+            if (pageNum === 1) {
+                renderInfoUlangan(currentData);
+            } else if (pageNum === 2) {
+                renderTableSiswa(currentData);
+            } else if (pageNum === 3) {
+                renderTableButirSoal(currentData);
+            } else if (pageNum === 4) {
+                renderTableDayaPembeda(currentData);
+            } else if (pageNum === 5) {
+                renderAnalisisKD(currentData);
+            }
+        }
+
+        function renderInfoUlangan(data) {
+            const parsed = parseDataSiswa(data);
+            const analisisButir = hitungAnalisisButirSoal(data);
+            
+            const ketuntasanKlasikal = (parsed.lulus / parsed.siswa.length * 100).toFixed(1);
+            const statusKlasikal = ketuntasanKlasikal >= data.batas ? 'TUNTAS' : 'REMEDIAL';
+            const colorKlasikal = statusKlasikal === 'TUNTAS' ? '#48bb78' : '#f56565';
+            
+            const modeBadge = data.mode === 'pilihan_ganda' 
+                ? '<span class="mode-badge mode-pg">PILIHAN GANDA</span>' 
+                : '<span class="mode-badge mode-essay">ESSAY</span>';
+
+            let html = `
+                <div class="info-grid">
+                    <div class="info-item"><strong>Guru Mapel:</strong> ${data.guru}</div>
+                    <div class="info-item"><strong>Mata Pelajaran:</strong> ${data.mapel}</div>
+                    <div class="info-item"><strong>Kelas:</strong> ${data.kelas}</div>
+                    <div class="info-item"><strong>Jenis Penilaian:</strong> ${data.jenis}</div>
+                    <div class="info-item"><strong>Mode Soal:</strong> ${modeBadge}</div>
+                    <div class="info-item"><strong>KKM:</strong> ${data.kkm}</div>
+                    <div class="info-item"><strong>Batas Ketuntasan:</strong> ${data.batas}%</div>
+                    <div class="info-item"><strong>Jumlah Soal:</strong> ${parsed.kunci.length}</div>
+                    <div class="info-item"><strong>Jumlah Siswa:</strong> ${parsed.siswa.length}</div>
+                    <div class="info-item"><strong>Nilai Tertinggi:</strong> ${parsed.nilaiTertinggi}</div>
+                    <div class="info-item"><strong>Nilai Terendah:</strong> ${parsed.nilaiTerendah}</div>
+                    <div class="info-item"><strong>Rata-rata Kelas:</strong> ${parsed.rataRata}</div>
+                    <div class="info-item"><strong>Siswa Tuntas:</strong> ${parsed.lulus} siswa</div>
+                    <div class="info-item"><strong>Siswa Remedial:</strong> ${parsed.tidakLulus} siswa</div>
+                    <div class="info-item"><strong>Ketuntasan Klasikal:</strong> 
+                        <span style="color: ${colorKlasikal}; font-weight: bold;">${ketuntasanKlasikal}% (${statusKlasikal})</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h5 style="color: #667eea; margin-bottom: 10px;">📝 Kunci Jawaban:</h5>
+                    <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; word-break: break-all;">
+                        ${data.mode === 'pilihan_ganda' ? data.kunci.split('').join(' ') : data.kunci}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('info-ulangan').innerHTML = html;
+        }
+
+        function parseDataSiswa(data) {
+            let kunciArray = [];
+            if (data.mode === 'pilihan_ganda') {
+                kunciArray = data.kunci.toUpperCase().split('');
+            } else {
+                kunciArray = data.kunci.split(',').map(s => parseFloat(s.trim()));
+            }
+
+            const lines = data.siswa.split('\n').filter(line => line.trim());
+            const siswa = [];
+            
+            lines.forEach(line => {
+                const parts = line.split('|');
+                if (parts.length >= 3) {
+                    const nama = parts[0].trim();
+                    const kelas = parts[1].trim();
+                    const jawabanStr = parts[2].trim();
+                    
+                    let jawabanArray = [];
+                    if (data.mode === 'pilihan_ganda') {
+                        jawabanArray = jawabanStr.toUpperCase().split('');
+                    } else {
+                        jawabanArray = jawabanStr.split(',').map(s => parseFloat(s.trim()));
+                    }
+
+                    let benar = 0;
+                    let salah = 0;
+                    let kosong = 0;
+                    let totalSkor = 0;
+
+                    if (data.mode === 'pilihan_ganda') {
+                        for (let i = 0; i < kunciArray.length; i++) {
+                            if (i >= jawabanArray.length || !jawabanArray[i] || jawabanArray[i] === '-') {
+                                kosong++;
+                            } else if (jawabanArray[i] === kunciArray[i]) {
+                                benar++;
+                            } else {
+                                salah++;
+                            }
+                        }
+                        totalSkor = Math.round((benar / kunciArray.length) * 100);
+                    } else {
+                        const totalMaksimal = kunciArray.reduce((sum, val) => sum + val, 0);
+                        let totalDapat = 0;
+                        for (let i = 0; i < kunciArray.length; i++) {
+                            const skorDapat = jawabanArray[i] || 0;
+                            totalDapat += skorDapat;
+                            if (skorDapat >= kunciArray[i]) {
+                                benar++;
+                            } else if (skorDapat > 0) {
+                                salah++;
+                            } else {
+                                kosong++;
+                            }
+                        }
+                        totalSkor = Math.round((totalDapat / totalMaksimal) * 100);
+                    }
+
+                    const statusLulus = totalSkor >= data.kkm;
+
+                    siswa.push({
+                        nama,
+                        kelas,
+                        jawaban: jawabanArray,
+                        benar,
+                        salah,
+                        kosong,
+                        nilai: totalSkor,
+                        status: statusLulus ? 'Tuntas' : 'Remedial'
+                    });
+                }
+            });
+
+            siswa.sort((a, b) => b.nilai - a.nilai);
+
+            const nilaiArray = siswa.map(s => s.nilai);
+            const rataRata = Math.round(nilaiArray.reduce((sum, val) => sum + val, 0) / nilaiArray.length);
+            const nilaiTertinggi = Math.max(...nilaiArray);
+            const nilaiTerendah = Math.min(...nilaiArray);
+            const lulus = siswa.filter(s => s.nilai >= data.kkm).length;
+            const tidakLulus = siswa.length - lulus;
+
+            return {
+                kunci: kunciArray,
+                siswa,
+                rataRata,
+                nilaiTertinggi,
+                nilaiTerendah,
+                lulus,
+                tidakLulus
+            };
+        }
+
+        function renderTableSiswa(data) {
+            const parsed = parseDataSiswa(data);
+            
+            let html = '<div class="table-container"><table class="print-table"><thead><tr>';
+            html += '<th style="width: 40px;">Rank</th>';
+            html += '<th>Nama Siswa</th>';
+            html += '<th style="width: 100px;">Kelas</th>';
+            
+            for (let i = 0; i < parsed.kunci.length; i++) {
+                html += `<th style="width: 35px;">${i + 1}</th>`;
+            }
+            
+            html += '<th style="width: 50px;">✓</th>';
+            html += '<th style="width: 50px;">  </th>';
+            html += '<th style="width: 50px;">-</th>';
+            html += '<th style="width: 70px;">Nilai</th>';
+            html += '<th style="width: 80px;">Status</th>';
+            html += '</tr></thead><tbody>';
+
+            parsed.siswa.forEach((siswa, index) => {
+                const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
+                const rankBadge = `<span class="rank-badge ${rankClass}">${index + 1}</span>`;
+                
+                html += '<tr>';
+                html += `<td style="text-align: center;">${rankBadge}</td>`;
+                html += `<td>${siswa.nama}</td>`;
+                html += `<td style="text-align: center;">${siswa.kelas}</td>`;
+                
+                for (let i = 0; i < parsed.kunci.length; i++) {
+                    const jawaban = siswa.jawaban[i];
+                    const kunci = parsed.kunci[i];
+                    
+                    let cellClass = '';
+                    let cellValue = '';
+                    
+                    if (data.mode === 'pilihan_ganda') {
+                        if (!jawaban || jawaban === '-') {
+                            cellClass = 'jawaban-kosong';
+                            cellValue = '-';
+                        } else if (jawaban === kunci) {
+                            cellClass = 'jawaban-benar';
+                            cellValue = jawaban;
+                        } else {
+                            cellClass = 'jawaban-salah';
+                            cellValue = jawaban;
+                        }
+                    } else {
+                        const skorDapat = jawaban || 0;
+                        if (skorDapat === 0) {
+                            cellClass = 'jawaban-kosong';
+                        } else if (skorDapat >= kunci) {
+                            cellClass = 'jawaban-benar';
+                        } else {
+                            cellClass = 'jawaban-salah';
+                        }
+                        cellValue = skorDapat;
+                    }
+                    
+                    html += `<td class="jawaban-cell ${cellClass}">${cellValue}</td>`;
+                }
+                
+                html += `<td style="text-align: center;" class="correct">${siswa.benar}</td>`;
+                html += `<td style="text-align: center;" class="incorrect">${siswa.salah}</td>`;
+                html += `<td style="text-align: center;">${siswa.kosong}</td>`;
+                html += `<td style="text-align: center; font-weight: bold;">${siswa.nilai}</td>`;
+                html += `<td style="text-align: center;"><span class="${siswa.status === 'Tuntas' ? 'correct' : 'incorrect'}">${siswa.status}</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            
+            document.getElementById('table-siswa').innerHTML = html;
+        }
+
+        function hitungAnalisisButirSoal(data) {
+            const parsed = parseDataSiswa(data);
+            const analisis = [];
+
+            for (let i = 0; i < parsed.kunci.length; i++) {
+                let benar = 0;
+                let salah = 0;
+                let kosong = 0;
+
+                parsed.siswa.forEach(siswa => {
+                    const jawaban = siswa.jawaban[i];
+                    const kunci = parsed.kunci[i];
+
+                    if (data.mode === 'pilihan_ganda') {
+                        if (!jawaban || jawaban === '-') {
+                            kosong++;
+                        } else if (jawaban === kunci) {
+                            benar++;
+                        } else {
+                            salah++;
+                        }
+                    } else {
+                        const skorDapat = jawaban || 0;
+                        if (skorDapat === 0) {
+                            kosong++;
+                        } else if (skorDapat >= kunci) {
+                            benar++;
+                        } else {
+                            salah++;
+                        }
+                    }
+                });
+
+                const tingkatKesukaran = (benar / parsed.siswa.length * 100).toFixed(1);
+                let kategori = '';
+                if (tingkatKesukaran >= 70) {
+                    kategori = 'Mudah';
+                } else if (tingkatKesukaran >= 30) {
+                    kategori = 'Sedang';
+                } else {
+                    kategori = 'Sulit';
+                }
+
+                analisis.push({
+                    nomor: i + 1,
+                    kunci: parsed.kunci[i],
+                    benar,
+                    salah,
+                    kosong,
+                    tingkatKesukaran,
+                    kategori
+                });
+            }
+
+            return analisis;
+        }
+
+        function hitungDayaPembeda(data) {
+            const parsed = parseDataSiswa(data);
+            const jumlahSiswa = parsed.siswa.length;
+            const jumlah27Persen = Math.ceil(jumlahSiswa * 0.27);
+            
+            const kelompokAtas = parsed.siswa.slice(0, jumlah27Persen);
+            const kelompokBawah = parsed.siswa.slice(-jumlah27Persen);
+            
+            const analisisPembeda = [];
+
+            for (let i = 0; i < parsed.kunci.length; i++) {
+                let benarAtas = 0;
+                let benarBawah = 0;
+
+                kelompokAtas.forEach(siswa => {
+                    const jawaban = siswa.jawaban[i];
+                    const kunci = parsed.kunci[i];
+
+                    if (data.mode === 'pilihan_ganda') {
+                        if (jawaban === kunci) {
+                            benarAtas++;
+                        }
+                    } else {
+                        const skorDapat = jawaban || 0;
+                        if (skorDapat >= kunci) {
+                            benarAtas++;
+                        }
+                    }
+                });
+
+                kelompokBawah.forEach(siswa => {
+                    const jawaban = siswa.jawaban[i];
+                    const kunci = parsed.kunci[i];
+
+                    if (data.mode === 'pilihan_ganda') {
+                        if (jawaban === kunci) {
+                            benarBawah++;
+                        }
+                    } else {
+                        const skorDapat = jawaban || 0;
+                        if (skorDapat >= kunci) {
+                            benarBawah++;
+                        }
+                    }
+                });
+
+                const pAtas = (benarAtas / jumlah27Persen * 100).toFixed(1);
+                const pBawah = (benarBawah / jumlah27Persen * 100).toFixed(1);
+                const dayaPembeda = (parseFloat(pAtas) - parseFloat(pBawah)).toFixed(1);
+
+                let kategori = '';
+                const dp = parseFloat(dayaPembeda);
+                if (dp >= 40) {
+                    kategori = 'Sangat Baik';
+                } else if (dp >= 30) {
+                    kategori = 'Baik';
+                } else if (dp >= 20) {
+                    kategori = 'Cukup';
+                } else if (dp >= 0) {
+                    kategori = 'Jelek';
+                } else {
+                    kategori = 'Sangat Jelek';
+                }
+
+                analisisPembeda.push({
+                    nomor: i + 1,
+                    kelompokAtas: `${benarAtas}/${jumlah27Persen} (${pAtas}%)`,
+                    kelompokBawah: `${benarBawah}/${jumlah27Persen} (${pBawah}%)`,
+                    dayaPembeda,
+                    kategori
+                });
+            }
+
+            return analisisPembeda;
+        }
+
+        function renderTableButirSoal(data) {
+            const analisis = hitungAnalisisButirSoal(data);
+            
+            let html = '<div class="table-container"><table><thead><tr>';
+            html += '<th>No. Soal</th>';
+            html += '<th>Kunci</th>';
+            html += '<th>Benar</th>';
+            html += '<th>Salah</th>';
+            html += '<th>Kosong</th>';
+            html += '<th>Tingkat Kesukaran</th>';
+            html += '<th>Kategori</th>';
+            html += '</tr></thead><tbody>';
+
+            analisis.forEach(item => {
+                const badgeClass = item.kategori === 'Mudah' ? 'difficulty-mudah' : 
+                                   item.kategori === 'Sedang' ? 'difficulty-sedang' : 'difficulty-sulit';
+                
+                html += '<tr>';
+                html += `<td style="text-align: center; font-weight: bold;">${item.nomor}</td>`;
+                html += `<td style="text-align: center; font-weight: bold;">${item.kunci}</td>`;
+                html += `<td style="text-align: center;" class="correct">${item.benar}</td>`;
+                html += `<td style="text-align: center;" class="incorrect">${item.salah}</td>`;
+                html += `<td style="text-align: center;">${item.kosong}</td>`;
+                html += `<td style="text-align: center;">${item.tingkatKesukaran}%</td>`;
+                html += `<td style="text-align: center;"><span class="difficulty-badge ${badgeClass}">${item.kategori}</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            
+            document.getElementById('table-butir-soal').innerHTML = html;
+        }
+
+        function renderTableDayaPembeda(data) {
+            const dayaPembeda = hitungDayaPembeda(data);
+            
+            let html = '<div class="table-container"><table><thead><tr>';
+            html += '<th>No. Soal</th>';
+            html += '<th>Kelompok Atas (27%)</th>';
+            html += '<th>Kelompok Bawah (27%)</th>';
+            html += '<th>Daya Pembeda (%)</th>';
+            html += '<th>Kategori</th>';
+            html += '</tr></thead><tbody>';
+
+            dayaPembeda.forEach(item => {
+                let badgeClass = '';
+                if (item.kategori === 'Sangat Baik') badgeClass = 'difficulty-mudah';
+                else if (item.kategori === 'Baik') badgeClass = 'difficulty-mudah';
+                else if (item.kategori === 'Cukup') badgeClass = 'difficulty-sedang';
+                else badgeClass = 'difficulty-sulit';
+                
+                html += '<tr>';
+                html += `<td style="text-align: center; font-weight: bold;">${item.nomor}</td>`;
+                html += `<td style="text-align: center;">${item.kelompokAtas}</td>`;
+                html += `<td style="text-align: center;">${item.kelompokBawah}</td>`;
+                html += `<td style="text-align: center; font-weight: bold;">${item.dayaPembeda}%</td>`;
+                html += `<td style="text-align: center;"><span class="difficulty-badge ${badgeClass}">${item.kategori}</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: #f7fafc; border-left: 4px solid #667eea; border-radius: 8px;">
+                    <h5 style="margin: 0 0 10px 0; color: #667eea;">📖 Interpretasi Daya Pembeda</h5>
+                    <p style="margin: 5px 0; font-size: 13px;"><strong>Sangat Baik:</strong> ≥ 40% (Soal sangat membedakan siswa pintar dan kurang)</p>
+                    <p style="margin: 5px 0; font-size: 13px;"><strong>Baik:</strong> 30% - 39% (Soal membedakan dengan baik)</p>
+                    <p style="margin: 5px 0; font-size: 13px;"><strong>Cukup:</strong> 20% - 29% (Soal cukup membedakan)</p>
+                    <p style="margin: 5px 0; font-size: 13px;"><strong>Jelek:</strong> 0% - 19% (Soal kurang membedakan)</p>
+                    <p style="margin: 5px 0; font-size: 13px;"><strong>Sangat Jelek:</strong> < 0% (Soal perlu diperbaiki/diganti)</p>
+                </div>
+            `;
+            
+            document.getElementById('table-daya-pembeda').innerHTML = html;
+        }
+
+        function renderAnalisisKD(data) {
+            if (!data.kd || !data.kd.trim()) {
+                document.getElementById('table-analisis-kd').innerHTML = 
+                    '<p style="text-align: center; color: #718096;">Data KD tidak tersedia</p>';
+                document.getElementById('ringkasan-kd').innerHTML = '';
+                return;
+            }
+
+            const parsed = parseDataSiswa(data);
+            const kdLines = data.kd.split('\n').filter(line => line.trim());
+            const kdAnalisis = [];
+
+            kdLines.forEach(line => {
+                const parts = line.split('|');
+                if (parts.length >= 3) {
+                    const kode = parts[0].trim();
+                    const nama = parts[1].trim();
+                    const soalStr = parts[2].trim();
+                    const noSoal = soalStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+
+                    let totalBenar = 0;
+                    let totalSoal = 0;
+
+                    parsed.siswa.forEach(siswa => {
+                        noSoal.forEach(no => {
+                            const idx = no - 1;
+                            if (idx >= 0 && idx < parsed.kunci.length) {
+                                totalSoal++;
+                                const jawaban = siswa.jawaban[idx];
+                                const kunci = parsed.kunci[idx];
+
+                                if (data.mode === 'pilihan_ganda') {
+                                    if (jawaban === kunci) {
+                                        totalBenar++;
+                                    }
+                                } else {
+                                    const skorDapat = jawaban || 0;
+                                    if (skorDapat >= kunci) {
+                                        totalBenar++;
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    const ketuntasan = totalSoal > 0 ? (totalBenar / totalSoal * 100).toFixed(1) : 0;
+                    const status = ketuntasan >= data.batas ? 'TUNTAS' : 'REMEDIAL';
+
+                    kdAnalisis.push({
+                        kode,
+                        nama,
+                        noSoal: soalStr,
+                        ketuntasan,
+                        status
+                    });
+                }
+            });
+
+            let html = '<div class="table-container"><table><thead><tr>';
+            html += '<th>Kode KD</th>';
+            html += '<th>Nama Kompetensi Dasar</th>';
+            html += '<th>No. Soal</th>';
+            html += '<th>Ketuntasan</th>';
+            html += '<th>Status</th>';
+            html += '</tr></thead><tbody>';
+
+            kdAnalisis.forEach(kd => {
+                const statusClass = kd.status === 'TUNTAS' ? 'correct' : 'incorrect';
+                html += '<tr>';
+                html += `<td style="font-weight: bold;">${kd.kode}</td>`;
+                html += `<td>${kd.nama}</td>`;
+                html += `<td style="text-align: center;">${kd.noSoal}</td>`;
+                html += `<td style="text-align: center; font-weight: bold;">${kd.ketuntasan}%</td>`;
+                html += `<td style="text-align: center;"><span class="${statusClass}">${kd.status}</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('table-analisis-kd').innerHTML = html;
+
+            const tuntas = kdAnalisis.filter(kd => kd.status === 'TUNTAS').length;
+            const remedial = kdAnalisis.filter(kd => kd.status === 'REMEDIAL').length;
+            const persenTuntas = ((tuntas / kdAnalisis.length) * 100).toFixed(1);
+
+            let ringkasanHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total KD</h4>
+                        <p>${kdAnalisis.length}</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>KD Tuntas</h4>
+                        <p>${tuntas}</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>KD Remedial</h4>
+                        <p>${remedial}</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Persentase Tuntas</h4>
+                        <p>${persenTuntas}%</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('ringkasan-kd').innerHTML = ringkasanHtml;
+        }
+
+        function generatePreview(data) {
+            const previewContent = document.getElementById('preview-content');
+            const parsed = parseDataSiswa(data);
+            const analisisButir = hitungAnalisisButirSoal(data);
+            const dayaPembeda = hitungDayaPembeda(data);
+            
+            const ketuntasanKlasikal = (parsed.lulus / parsed.siswa.length * 100).toFixed(1);
+            const statusKlasikal = ketuntasanKlasikal >= data.batas ? 'TUNTAS' : 'REMEDIAL';
+            
+            const today = new Date();
+            const tanggalSekarang = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            
+            const modeBadge = data.mode === 'pilihan_ganda' ? 'PILIHAN GANDA' : 'ESSAY';
+
+            let html = `
+                <div class="print-export-btn">
+                    <button class="btn btn-primary" onclick="printLaporan()" style="font-size: 16px; padding: 15px 30px;">
+                          ️ CETAK
+                    </button>
+                    <p style="margin: 10px 0 0 0; color: #718096; font-size: 13px;">Klik untuk membuka preview cetak (Ctrl+P)</p>
+                </div>
+
+                <div class="print-preview">
+                    <!-- HALAMAN COVER -->
+                    <div class="print-page">
+                        <div class="print-cover">
+                            <div class="print-cover-logo">
+                                <img src="https://iili.io/KpcMBzQ.png" alt="Logo Sekolah" style="width: 120px; height: auto;" onerror="this.style.display='none';">
+                            </div>
+                            <div class="print-cover-title">LAPORAN ANALISIS ULANGAN HARIAN</div>
+                            <div class="print-cover-subtitle">${data.mapel}</div>
+                            <div class="print-cover-subtitle">Kelas ${data.kelas}</div>
+                            
+                            <div class="print-cover-info">
+                                <p><strong>Jenis Penilaian:</strong> ${data.jenis}</p>
+                                <p><strong>Mode Soal:</strong> ${modeBadge}</p>
+                                <p><strong>Guru Mata Pelajaran:</strong> ${data.guru}</p>
+                                <p><strong>Sekolah:</strong> ${defaultConfig.nama_sekolah}</p>
+                                <p style="margin-top: 40px;">${tanggalSekarang}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HALAMAN 1: INFO ULANGAN & STATISTIK -->
+                    <div class="print-page print-content-page">
+                        <h3>INFORMASI ULANGAN DAN STATISTIK</h3>
+                        
+                        <div class="print-info-box">
+                            <p><strong>Guru Mata Pelajaran:</strong> ${data.guru}</p>
+                            <p><strong>Mata Pelajaran:</strong> ${data.mapel}</p>
+                            <p><strong>Kelas:</strong> ${data.kelas}</p>
+                            <p><strong>Jenis Penilaian:</strong> ${data.jenis}</p>
+                            <p><strong>Mode Soal:</strong> ${modeBadge}</p>
+                            <p><strong>KKM:</strong> ${data.kkm}</p>
+                            <p><strong>Batas Ketuntasan Klasikal & KD:</strong> ${data.batas}%</p>
+                            <p><strong>Jumlah Soal:</strong> ${parsed.kunci.length}</p>
+                            <p><strong>Jumlah Siswa:</strong> ${parsed.siswa.length}</p>
+                        </div>
+
+                        <h4>Statistik Hasil Ulangan</h4>
+                        <div class="print-info-box">
+                            <p><strong>Nilai Tertinggi:</strong> ${parsed.nilaiTertinggi}</p>
+                            <p><strong>Nilai Terendah:</strong> ${parsed.nilaiTerendah}</p>
+                            <p><strong>Rata-rata Kelas:</strong> ${parsed.rataRata}</p>
+                            <p><strong>Siswa Tuntas:</strong> ${parsed.lulus} siswa</p>
+                            <p><strong>Siswa Remedial:</strong> ${parsed.tidakLulus} siswa</p>
+                            <p><strong>Ketuntasan Klasikal:</strong> ${ketuntasanKlasikal}% (${statusKlasikal})</p>
+                        </div>
+
+                        <h4>Kunci Jawaban</h4>
+                        <div class="print-info-box" style="font-family: monospace; word-break: break-all;">
+                            ${data.mode === 'pilihan_ganda' ? data.kunci.split('').join(' ') : data.kunci}
+                        </div>
+
+                        <div class="print-signature">
+                            <div class="print-signature-left">
+                                <p>Mengetahui,</p>
+                                <p>Kepala Sekolah</p>
+                                <p class="print-signature-name">Fatma Ainie, S.IP., M.M</p>
+                            </div>
+                            <div class="print-signature-right">
+                                <p>${tanggalSekarang}</p>
+                                <p>Guru Mata Pelajaran</p>
+                                <p class="print-signature-name">${data.guru}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HALAMAN 2: HASIL SISWA (Part 1) -->
+                    ${generateHalamanSiswa(data, parsed, 0, 20, tanggalSekarang)}
+                    
+                    <!-- HALAMAN 3: HASIL SISWA (Part 2) - jika lebih dari 20 siswa -->
+                    ${parsed.siswa.length > 20 ? generateHalamanSiswa(data, parsed, 20, 40, tanggalSekarang) : ''}
+
+                    <!-- HALAMAN 4: HASIL SISWA (Part 3) - jika lebih dari 40 siswa -->
+                    ${parsed.siswa.length > 40 ? generateHalamanSiswa(data, parsed, 40, 60, tanggalSekarang) : ''}
+
+                    <!-- HALAMAN: ANALISIS BUTIR SOAL -->
+                    ${generateHalamanButirSoal(data, analisisButir, tanggalSekarang)}
+
+                    <!-- HALAMAN: ANALISIS DAYA PEMBEDA -->
+                    ${generateHalamanDayaPembeda(data, dayaPembeda, tanggalSekarang)}
+
+                    <!-- HALAMAN: ANALISIS KD (jika ada) -->
+                    ${data.kd && data.kd.trim() ? generateHalamanKD(data, parsed, tanggalSekarang) : ''}
+                </div>
+            `;
+
+            previewContent.innerHTML = html;
+        }
+
+        function generateHalamanSiswa(data, parsed, start, end, tanggal) {
+            const siswaSubset = parsed.siswa.slice(start, end);
+            if (siswaSubset.length === 0) return '';
+
+            const pageNum = Math.floor(start / 20) + 2;
+            const totalPages = Math.ceil(parsed.siswa.length / 20) + 1;
+
+            let html = `
+                <div class="print-page print-content-page">
+                    <h3>HASIL SISWA (Halaman ${pageNum}/${totalPages})</h3>
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">No</th>
+                                <th>Nama Siswa</th>
+                                <th style="width: 70px;">Kelas</th>
+            `;
+
+            for (let i = 0; i < parsed.kunci.length; i++) {
+                html += `<th style="width: 25px;">${i + 1}</th>`;
+            }
+
+            html += `
+                                <th style="width: 30px;">✓</th>
+                                <th style="width: 30px;">✗</th>
+                                <th style="width: 30px;">-</th>
+                                <th style="width: 40px;">Nilai</th>
+                                <th style="width: 50px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            siswaSubset.forEach((siswa, index) => {
+                const actualIndex = start + index + 1;
+                html += `<tr>
+                    <td style="text-align: center;">${actualIndex}</td>
+                    <td>${siswa.nama}</td>
+                    <td style="text-align: center;">${siswa.kelas}</td>
+                `;
+
+                for (let i = 0; i < parsed.kunci.length; i++) {
+                    const jawaban = siswa.jawaban[i];
+                    const kunci = parsed.kunci[i];
+                    
+                    let cellStyle = 'text-align: center; font-weight: bold;';
+                    let cellValue = '';
+                    
+                    if (data.mode === 'pilihan_ganda') {
+                        if (!jawaban || jawaban === '-') {
+                            cellStyle += ' background: #e2e8f0; color: #4a5568;';
+                            cellValue = '-';
+                        } else if (jawaban === kunci) {
+                            cellStyle += ' background: #c6f6d5; color: #22543d;';
+                            cellValue = jawaban;
+                        } else {
+                            cellStyle += ' background: #fed7d7; color: #742a2a;';
+                            cellValue = jawaban;
+                        }
+                    } else {
+                        const skorDapat = jawaban || 0;
+                        if (skorDapat === 0) {
+                            cellStyle += ' background: #e2e8f0; color: #4a5568;';
+                        } else if (skorDapat >= kunci) {
+                            cellStyle += ' background: #c6f6d5; color: #22543d;';
+                        } else {
+                            cellStyle += ' background: #fed7d7; color: #742a2a;';
+                        }
+                        cellValue = skorDapat;
+                    }
+                    
+                    html += `<td style="${cellStyle}">${cellValue}</td>`;
+                }
+
+                html += `
+                    <td style="text-align: center; color: #48bb78; font-weight: bold;">${siswa.benar}</td>
+                    <td style="text-align: center; color: #f56565; font-weight: bold;">${siswa.salah}</td>
+                    <td style="text-align: center;">${siswa.kosong}</td>
+                    <td style="text-align: center; font-weight: bold;">${siswa.nilai}</td>
+                    <td style="text-align: center; font-weight: bold; ${siswa.status === 'Tuntas' ? 'color: #48bb78;' : 'color: #f56565;'}">${siswa.status}</td>
+                </tr>`;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+
+                    <div class="print-signature">
+                        <div class="print-signature-left">
+                            <p>Mengetahui,</p>
+                            <p>Kepala Sekolah</p>
+                            <p class="print-signature-name">Fatma Ainie, S.IP., M.M</p>
+                        </div>
+                        <div class="print-signature-right">
+                            <p>${tanggal}</p>
+                            <p>Guru Mata Pelajaran</p>
+                            <p class="print-signature-name">${data.guru}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function generateHalamanButirSoal(data, analisis, tanggal) {
+            let html = `
+                <div class="print-page print-content-page">
+                    <h3>ANALISIS BUTIR SOAL</h3>
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>No. Soal</th>
+                                <th>Kunci</th>
+                                <th>Benar</th>
+                                <th>Salah</th>
+                                <th>Kosong</th>
+                                <th>Tingkat Kesukaran</th>
+                                <th>Kategori</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            analisis.forEach(item => {
+                let bgColor = '';
+                if (item.kategori === 'Mudah') bgColor = '#c6f6d5';
+                else if (item.kategori === 'Sedang') bgColor = '#feebc8';
+                else bgColor = '#fed7d7';
+
+                html += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">${item.nomor}</td>
+                        <td style="text-align: center; font-weight: bold;">${item.kunci}</td>
+                        <td style="text-align: center; color: #48bb78; font-weight: bold;">${item.benar}</td>
+                        <td style="text-align: center; color: #f56565; font-weight: bold;">${item.salah}</td>
+                        <td style="text-align: center;">${item.kosong}</td>
+                        <td style="text-align: center;">${item.tingkatKesukaran}%</td>
+                        <td style="text-align: center; background: ${bgColor}; font-weight: bold;">${item.kategori}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+
+                    <div class="print-signature">
+                        <div class="print-signature-left">
+                            <p>Mengetahui,</p>
+                            <p>Kepala Sekolah</p>
+                            <p class="print-signature-name">Fatma Ainie, S.IP., M.M</p>
+                        </div>
+                        <div class="print-signature-right">
+                            <p>${tanggal}</p>
+                            <p>Guru Mata Pelajaran</p>
+                            <p class="print-signature-name">${data.guru}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function generateHalamanDayaPembeda(data, dayaPembeda, tanggal) {
+            let html = `
+                <div class="print-page print-content-page">
+                    <h3>ANALISIS DAYA PEMBEDA SOAL</h3>
+                    
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>No. Soal</th>
+                                <th>Kelompok Atas (27%)</th>
+                                <th>Kelompok Bawah (27%)</th>
+                                <th>Daya Pembeda</th>
+                                <th>Kategori</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            dayaPembeda.forEach(item => {
+                let bgColor = '';
+                if (item.kategori === 'Sangat Baik' || item.kategori === 'Baik') {
+                    bgColor = '#c6f6d5';
+                } else if (item.kategori === 'Cukup') {
+                    bgColor = '#feebc8';
+                } else {
+                    bgColor = '#fed7d7';
+                }
+
+                html += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">${item.nomor}</td>
+                        <td style="text-align: center;">${item.kelompokAtas}</td>
+                        <td style="text-align: center;">${item.kelompokBawah}</td>
+                        <td style="text-align: center; font-weight: bold;">${item.dayaPembeda}%</td>
+                        <td style="text-align: center; background: ${bgColor}; font-weight: bold;">${item.kategori}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+
+                    <div class="print-info-box" style="margin-top: 15px;">
+                        <p style="margin: 0 0 5px 0; font-weight: bold;">Interpretasi Daya Pembeda:</p>
+                        <p style="margin: 3px 0;"><strong>Sangat Baik:</strong> ≥ 40% (Soal sangat membedakan siswa pintar dan kurang)</p>
+                        <p style="margin: 3px 0;"><strong>Baik:</strong> 30% - 39% (Soal membedakan dengan baik)</p>
+                        <p style="margin: 3px 0;"><strong>Cukup:</strong> 20% - 29% (Soal cukup membedakan)</p>
+                        <p style="margin: 3px 0;"><strong>Jelek:</strong> 0% - 19% (Soal kurang membedakan)</p>
+                        <p style="margin: 3px 0;"><strong>Sangat Jelek:</strong> < 0% (Soal perlu diperbaiki/diganti)</p>
+                    </div>
+
+                    <div class="print-signature">
+                        <div class="print-signature-left">
+                            <p>Mengetahui,</p>
+                            <p>Kepala Sekolah</p>
+                            <p class="print-signature-name">Fatma Ainie, S.IP., M.M</p>
+                        </div>
+                        <div class="print-signature-right">
+                            <p>${tanggal}</p>
+                            <p>Guru Mata Pelajaran</p>
+                            <p class="print-signature-name">${data.guru}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function generateHalamanKD(data, parsed, tanggal) {
+            const kdLines = data.kd.split('\n').filter(line => line.trim());
+            const kdAnalisis = [];
+
+            kdLines.forEach(line => {
+                const parts = line.split('|');
+                if (parts.length >= 3) {
+                    const kode = parts[0].trim();
+                    const nama = parts[1].trim();
+                    const soalStr = parts[2].trim();
+                    const noSoal = soalStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+
+                    let totalBenar = 0;
+                    let totalSoal = 0;
+
+                    parsed.siswa.forEach(siswa => {
+                        noSoal.forEach(no => {
+                            const idx = no - 1;
+                            if (idx >= 0 && idx < parsed.kunci.length) {
+                                totalSoal++;
+                                const jawaban = siswa.jawaban[idx];
+                                const kunci = parsed.kunci[idx];
+
+                                if (data.mode === 'pilihan_ganda') {
+                                    if (jawaban === kunci) {
+                                        totalBenar++;
+                                    }
+                                } else {
+                                    const skorDapat = jawaban || 0;
+                                    if (skorDapat >= kunci) {
+                                        totalBenar++;
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    const ketuntasan = totalSoal > 0 ? (totalBenar / totalSoal * 100).toFixed(1) : 0;
+                    const status = ketuntasan >= data.batas ? 'TUNTAS' : 'REMEDIAL';
+
+                    kdAnalisis.push({
+                        kode,
+                        nama,
+                        noSoal: soalStr,
+                        ketuntasan,
+                        status
+                    });
+                }
+            });
+
+            const tuntas = kdAnalisis.filter(kd => kd.status === 'TUNTAS').length;
+            const remedial = kdAnalisis.filter(kd => kd.status === 'REMEDIAL').length;
+            const persenTuntas = ((tuntas / kdAnalisis.length) * 100).toFixed(1);
+
+            let html = `
+                <div class="print-page print-content-page">
+                    <h3>ANALISIS KETUNTASAN KOMPETENSI DASAR (KD)</h3>
+                    
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Kode KD</th>
+                                <th>Nama Kompetensi Dasar</th>
+                                <th>No. Soal</th>
+                                <th>Ketuntasan</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            kdAnalisis.forEach(kd => {
+                const color = kd.status === 'TUNTAS' ? '#48bb78' : '#f56565';
+                html += `
+                    <tr>
+                        <td style="font-weight: bold;">${kd.kode}</td>
+                        <td>${kd.nama}</td>
+                        <td style="text-align: center;">${kd.noSoal}</td>
+                        <td style="text-align: center; font-weight: bold;">${kd.ketuntasan}%</td>
+                        <td style="text-align: center; font-weight: bold; color: ${color};">${kd.status}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+
+                    <div class="print-info-box" style="margin-top: 20px;">
+                        <h4 style="margin: 0 0 10px 0;">RINGKASAN KETUNTASAN KD</h4>
+                        <p><strong>Total KD:</strong> ${kdAnalisis.length}</p>
+                        <p><strong>KD Tuntas:</strong> ${tuntas}</p>
+                        <p><strong>KD Remedial:</strong> ${remedial}</p>
+                        <p><strong>Persentase Tuntas:</strong> ${persenTuntas}%</p>
+                    </div>
+
+                    <div class="print-signature">
+                        <div class="print-signature-left">
+                            <p>Mengetahui,</p>
+                            <p>Kepala Sekolah</p>
+                            <p class="print-signature-name">Fatma Ainie, S.IP., M.M</p>
+                        </div>
+                        <div class="print-signature-right">
+                            <p>${tanggal}</p>
+                            <p>Guru Mata Pelajaran</p>
+                            <p class="print-signature-name">${data.guru}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        async function deleteAnalysis(event, id) {
+            event.stopPropagation();
+            
+            const confirmDelete = document.createElement('div');
+            confirmDelete.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 9999; text-align: center;';
+            confirmDelete.innerHTML = `
+                <h3 style="margin: 0 0 15px 0; color: #667eea;">Hapus Data Analisis?</h3>
+                <p style="margin: 0 0 20px 0; color: #718096;">Data yang dihapus tidak dapat dikembalikan.</p>
+                <button onclick="confirmDeleteAnalysis('${id}')" class="btn btn-danger">Ya, Hapus</button>
+                <button onclick="this.parentElement.remove(); document.getElementById('overlay-delete').remove()" class="btn btn-secondary">Batal</button>
+            `;
+            
+            const overlay = document.createElement('div');
+            overlay.id = 'overlay-delete';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998;';
+            overlay.onclick = () => {
+                confirmDelete.remove();
+                overlay.remove();
+            };
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(confirmDelete);
+        }
+
+        async function confirmDeleteAnalysis(id) {
+            document.getElementById('overlay-delete').remove();
+            document.querySelectorAll('div').forEach(el => {
+                if (el.style.position === 'fixed' && el.innerHTML.includes('Hapus Data Analisis')) {
+                    el.remove();
+                }
+            });
+
+            try {
+                if (useLocalStorage) {
+                    allAnalysisData = allAnalysisData.filter(item => item.id !== id);
+                    saveToLocalStorage();
+                    renderHistory();
+                    showToast('✅ Data berhasil dihapus!', 'success');
+                } else {
+                    const itemToDelete = allAnalysisData.find(item => item.id === id);
+                    if (itemToDelete && itemToDelete.__backendId) {
+                        const result = await window.dataSdk.delete(itemToDelete);
+                        if (result.isOk) {
+                            showToast('✅ Data berhasil dihapus!', 'success');
+                        } else {
+                            showToast('❌ Gagal menghapus: ' + (result.error?.message || 'Unknown error'), 'error');
+                        }
+                    }
+                }
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const modeSoal = document.getElementById('mode-soal').value;
+            if (!modeSoal) {
+                showToast('❌ Pilih mode soal terlebih dahulu!', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            showToast('⏳ Sedang membaca file Excel...', 'success');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    if (!workbook.SheetNames || workbook.SheetNames.length < 3) {
+                        showToast('❌ File Excel harus memiliki minimal 3 sheet!', 'error');
+                        return;
+                    }
+
+                    console.log('📚 Membaca 3 sheet:', workbook.SheetNames[0], workbook.SheetNames[1], workbook.SheetNames[2]);
+
+                    // ===== SHEET 1: KUNCI JAWABAN =====
+                    const sheetKunci = workbook.Sheets[workbook.SheetNames[0]];
+                    const kunciData = XLSX.utils.sheet_to_json(sheetKunci, { header: 1, defval: null, raw: false, blankrows: false });
+                    
+                    console.log('📝 Sheet 1 (Kunci) - Total baris:', kunciData.length);
+                    
+                    if (!kunciData || kunciData.length < 2) {
+                        showToast('❌ Sheet 1 (Kunci) harus memiliki minimal 2 baris: Header + Data!', 'error');
+                        return;
+                    }
+
+                    let kunciJawaban = '';
+                    const kunciRow = kunciData[1]; // Baris ke-2 adalah data kunci
+                    
+                    console.log('🔑 Baris kunci mentah:', kunciRow);
+                    
+                    if (modeSoal === 'pilihan_ganda') {
+                        const validKunci = [];
+                        for (let i = 0; i < kunciRow.length && validKunci.length < 30; i++) {
+                            const cell = kunciRow[i];
+                            if (cell === null || cell === undefined || cell === '') continue;
+                            
+                            const jawaban = String(cell).trim().toUpperCase();
+                            if (/^[ABCDE]$/.test(jawaban)) {
+                                validKunci.push(jawaban);
+                            }
+                        }
+                        kunciJawaban = validKunci.join('');
+                        console.log('✅ Kunci PG:', kunciJawaban);
+                        
+                    } else {
+                        const validSkor = [];
+                        for (let i = 0; i < kunciRow.length && validSkor.length < 30; i++) {
+                            const cell = kunciRow[i];
+                            if (cell === null || cell === undefined || cell === '') continue;
+                            
+                            const skorNum = parseFloat(String(cell).trim());
+                            if (!isNaN(skorNum) && skorNum >= 0 && skorNum <= 100) {
+                                validSkor.push(String(skorNum));
+                            }
+                        }
+                        kunciJawaban = validSkor.join(',');
+                        console.log('✅ Kunci Essay:', kunciJawaban);
+                    }
+
+                    if (!kunciJawaban || kunciJawaban.length === 0) {
+                        showToast('❌ Kunci jawaban tidak ditemukan di Sheet 1 baris 2!', 'error');
+                        return;
+                    }
+
+                    // ===== SHEET 2: DATA KD =====
+                    const sheetKD = workbook.Sheets[workbook.SheetNames[1]];
+                    const kdData = XLSX.utils.sheet_to_json(sheetKD, { header: 1, defval: null, raw: false, blankrows: false });
+                    
+                    console.log('📚 Sheet 2 (KD) - Total baris:', kdData.length);
+                    
+                    let formattedKD = '';
+                    let kdCount = 0;
+                    
+                    for (let i = 1; i < kdData.length; i++) {
+                        const row = kdData[i];
+                        if (!row || row.length < 3) continue;
+                        
+                        const kode = row[0] !== null && row[0] !== undefined && row[0] !== '' ? String(row[0]).trim() : '';
+                        const keterangan = row[1] !== null && row[1] !== undefined && row[1] !== '' ? String(row[1]).trim() : '';
+                        const noSoal = row[2] !== null && row[2] !== undefined && row[2] !== '' ? String(row[2]).trim() : '';
+                        
+                        if (kode && keterangan && noSoal) {
+                            formattedKD += `${kode}|${keterangan}|${noSoal}\n`;
+                            kdCount++;
+                            console.log(`✅ KD ${kdCount}: ${kode} | ${keterangan} | ${noSoal}`);
+                        }
+                    }
+
+                    // ===== SHEET 3: JAWABAN SISWA =====
+                    const sheetJawaban = workbook.Sheets[workbook.SheetNames[2]];
+                    const siswaData = XLSX.utils.sheet_to_json(sheetJawaban, { header: 1, defval: null, raw: false, blankrows: false });
+
+                    console.log('👥 Sheet 3 (Jawaban) - Total baris:', siswaData.length);
+
+                    if (!siswaData || siswaData.length < 2) {
+                        showToast('❌ Sheet 3 (Jawaban) harus memiliki minimal 2 baris: Header + Data!', 'error');
+                        return;
+                    }
+
+                    let formattedSiswa = '';
+                    let successCount = 0;
+                    
+                    const jumlahSoal = modeSoal === 'pilihan_ganda' ? kunciJawaban.length : kunciJawaban.split(',').length;
+                    
+                    for (let i = 1; i < siswaData.length; i++) {
+                        const row = siswaData[i];
+                        
+                        if (!row || row.length < 3) continue;
+                        
+                        const nama = row[0] !== null && row[0] !== undefined && row[0] !== '' ? String(row[0]).trim() : '';
+                        const kelas = row[1] !== null && row[1] !== undefined && row[1] !== '' ? String(row[1]).trim() : '';
+                        
+                        if (!nama) continue;
+                        
+                        let jawabanSiswa = '';
+                        
+                        if (modeSoal === 'pilihan_ganda') {
+                            const jawabanArray = [];
+                            for (let j = 2; j < 2 + jumlahSoal; j++) {
+                                const cell = row[j];
+                                if (cell !== null && cell !== undefined && cell !== '') {
+                                    const jawaban = String(cell).trim().toUpperCase();
+                                    if (/^[ABCDE]$/.test(jawaban)) {
+                                        jawabanArray.push(jawaban);
+                                    } else {
+                                        jawabanArray.push('-');
+                                    }
+                                } else {
+                                    jawabanArray.push('-');
+                                }
+                            }
+                            jawabanSiswa = jawabanArray.join('');
+                            
+                        } else {
+                            const skorArray = [];
+                            for (let j = 2; j < 2 + jumlahSoal; j++) {
+                                const cell = row[j];
+                                if (cell !== null && cell !== undefined && cell !== '') {
+                                    const skorNum = parseFloat(String(cell).trim());
+                                    if (!isNaN(skorNum)) {
+                                        skorArray.push(String(skorNum));
+                                    } else {
+                                        skorArray.push('0');
+                                    }
+                                } else {
+                                    skorArray.push('0');
+                                }
+                            }
+                            jawabanSiswa = skorArray.join(',');
+                        }
+                        
+                        if (jawabanSiswa) {
+                            formattedSiswa += `${nama}|${kelas}|${jawabanSiswa}\n`;
+                            successCount++;
+                            console.log(`✅ Siswa ${successCount}: ${nama} | ${kelas}`);
+                        }
+                    }
+
+                    if (successCount === 0) {
+                        showToast('❌ Tidak ada data siswa yang valid di Sheet 3!', 'error');
+                        return;
+                    }
+
+                    // ===== ISI FORM DENGAN DATA YANG SUDAH DIPROSES =====
+                    const inputKunci = document.getElementById('kunci-jawaban');
+                    const inputKD = document.getElementById('data-kd');
+                    const inputSiswa = document.getElementById('data-siswa-manual');
+                    
+                    if (!inputKunci || !inputKD || !inputSiswa) {
+                        showToast('❌ Form input tidak ditemukan!', 'error');
+                        return;
+                    }
+                    
+                    // Pastikan value benar-benar di-set
+                    inputKunci.value = kunciJawaban;
+                    inputKD.value = formattedKD.trim();
+                    inputSiswa.value = formattedSiswa.trim();
+                    
+                    console.log('📋 DISTRIBUSI DATA:');
+                    console.log('   → Field Kunci:', inputKunci.id, '=', inputKunci.value.substring(0, 50) + '...');
+                    console.log('   → Field KD:', inputKD.id, '= ', inputKD.value.split('\n').length, 'baris');
+                    console.log('   → Field Siswa:', inputSiswa.id, '=', inputSiswa.value.split('\n').length, 'baris');
+                    
+                    showToast(`✅ Import berhasil! Kunci: ${jumlahSoal} soal | KD: ${kdCount} | Siswa: ${successCount}`, 'success');
+                    
+                    event.target.value = '';
+                    
+                } catch (error) {
+                    console.error('❌ Error reading Excel:', error);
+                    showToast('❌ Gagal membaca file: ' + error.message, 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showToast('❌ Gagal membaca file!', 'error');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function printLaporan() {
+            if (!currentData) {
+                showToast('❌ Tidak ada data untuk dicetak!', 'error');
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            
+            if (!printWindow) {
+                showToast('❌ Pop-up diblokir! Izinkan pop-up untuk mencetak.', 'error');
+                return;
+            }
+
+            const previewContent = document.querySelector('.print-preview').innerHTML;
+            
+            const printHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cetak Laporan Analisis</title><style>body{margin:0;padding:0;background:white;font-family:"Times New Roman",Times,serif;}.print-page{width:210mm;min-height:297mm;padding:20mm;margin:0 auto;background:white;page-break-after:always;position:relative;}.print-cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:257mm;border:3px solid #667eea;padding:40px;}.print-cover-logo{margin-bottom:30px;}.print-cover-logo img{width:120px;height:auto;}.print-cover-title{font-size:28px;font-weight:bold;color:#667eea;margin:20px 0;}.print-cover-subtitle{font-size:22px;color:#764ba2;margin:15px 0;font-weight:600;}.print-cover-info{margin-top:40px;font-size:16px;line-height:2;}.print-cover-info p{margin:10px 0;}.print-content-page{font-size:12px;font-family:"Times New Roman",Times,serif;}.print-content-page h3{font-size:16px;text-align:center;color:#667eea;margin:0 0 15px 0;padding-bottom:5px;border-bottom:2px solid #667eea;}.print-content-page h4{font-size:14px;color:#667eea;margin:15px 0 10px 0;}.print-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;font-family:"Times New Roman",Times,serif;}.print-table th,.print-table td{border:1px solid #333;padding:4px;text-align:left;}.print-table th{background:#667eea;color:white;font-weight:bold;text-align:center;}.print-info-box{background:#f7fafc;padding:10px;margin:10px 0;border-left:4px solid #667eea;font-size:12px;font-family:"Times New Roman",Times,serif;}.print-info-box p{margin:5px 0;}.print-signature{margin-top:40px;display:flex;justify-content:space-between;font-size:12px;font-family:"Times New Roman",Times,serif;}.print-signature-left,.print-signature-right{text-align:center;width:45%;}.print-signature-name{margin-top:60px;font-weight:bold;text-decoration:underline;}@media print{body{background:white;}.print-page{margin:0;page-break-after:always;}}</style></head><body>' + previewContent + '<script>window.onload=function(){window.print();};<\/script></body></html>';
+            
+            printWindow.document.write(printHTML);
+            printWindow.document.close();
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            
+            const fileInput = document.getElementById('file-excel');
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a360b392492fcff',t:'MTc2Mzk1NzI5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
