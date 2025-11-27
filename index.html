@@ -619,12 +619,12 @@
         }
 
         .print-content-page {
-            font-size: 12px;
+            font-size: 14px;
             font-family: 'Times New Roman', Times, serif;
         }
 
         .print-content-page h3 {
-            font-size: 16px;
+            font-size: 18px;
             text-align: center;
             color: #667eea;
             margin: 0 0 15px 0;
@@ -634,7 +634,7 @@
         }
 
         .print-content-page h4 {
-            font-size: 14px;
+            font-size: 16px;
             color: #667eea;
             margin: 15px 0 10px 0;
             font-family: 'Times New Roman', Times, serif;
@@ -644,7 +644,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: 10px 0;
-            font-size: 11px;
+            font-size: 12px;
             font-family: 'Times New Roman', Times, serif;
         }
 
@@ -667,7 +667,7 @@
             padding: 10px;
             margin: 10px 0;
             border-left: 4px solid #667eea;
-            font-size: 12px;
+            font-size: 13px;
             font-family: 'Times New Roman', Times, serif;
         }
 
@@ -679,7 +679,7 @@
             margin-top: 40px;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 13px;
             font-family: 'Times New Roman', Times, serif;
         }
 
@@ -806,13 +806,13 @@
   <div class="container">
    <div class="header">
     <h1 id="nama-sekolah">SMA TAKHASSUS AL QUR'AN WONOSOBO</h1>
-    <h2 id="judul-aplikasi">ANALISIS SOAL DAN JAWABAN</h2>
+    <h2 id="judul-aplikasi">ANALISIS ULANGAN HARIAN</h2>
    </div>
    <div class="card">
     <div class="nav-tabs"><button class="nav-tab active" id="tab-btn-input" onclick="showTab('input')">Input Data</button> <button class="nav-tab" id="tab-btn-history" onclick="showTab('history')">Riwayat Analisis</button> <button class="nav-tab" id="tab-btn-preview" onclick="showTab('preview')">Preview &amp; Copy Data</button>
     </div>
     <div id="tab-input">
-     <h3>     Form Input Data Ulangan</h3>
+     <h3>���� Form Input Data Ulangan</h3>
      <form id="form-identitas" onsubmit="handleSubmitIdentitas(event)">
       <div class="form-grid">
        <div class="form-column">
@@ -895,7 +895,7 @@ Contoh:
         <h4 style="color: #667eea; margin: 0 0 15px 0;">📚 Analisis Ketuntasan Kompetensi Dasar (KD)</h4>
         <div id="table-analisis-kd"></div>
         <div style="margin-top: 30px; padding: 20px; background: #f7fafc; border-left: 4px solid #667eea;">
-         <h5 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px;">    RINGKASAN KETUNTASAN KD</h5>
+         <h5 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px;">��� RINGKASAN KETUNTASAN KD</h5>
          <div id="ringkasan-kd"></div>
         </div>
        </div>
@@ -913,7 +913,7 @@ Contoh:
   <script>
         const defaultConfig = {
             nama_sekolah: "SMA TAKHASSUS AL QUR'AN WONOSOBO",
-            judul_aplikasi: "ANALISIS SOAL DAN JAWABAN"
+            judul_aplikasi: "ANALISIS ULANGAN HARIAN"
         };
 
         let currentData = null;
@@ -1058,16 +1058,6 @@ Contoh:
         async function handleSubmitIdentitas(event) {
             event.preventDefault();
             
-            if (!sdkInitialized) {
-                showToast('⏳ Aplikasi sedang diinisialisasi, tunggu sebentar...', 'error');
-                return;
-            }
-            
-            if (allAnalysisData.length >= 999) {
-                showToast('Maksimal 999 data analisis tercapai. Hapus beberapa data terlebih dahulu.', 'error');
-                return;
-            }
-
             const btnSubmit = document.getElementById('btn-submit');
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<span class="loading"></span> Memproses...';
@@ -1154,25 +1144,55 @@ Contoh:
             };
 
             try {
-                if (useLocalStorage) {
-                    allAnalysisData.push(dataToSave);
-                    saveToLocalStorage();
-                    renderHistory();
-                    showToast('✅ Data berhasil disimpan ke browser!', 'success');
-                    document.getElementById('form-identitas').reset();
-                    showTab('history');
-                } else {
-                    const result = await window.dataSdk.create(dataToSave);
-                    
-                    if (result.isOk) {
-                        showToast('✅ Data berhasil disimpan!', 'success');
-                        document.getElementById('form-identitas').reset();
-                        showTab('history');
-                    } else {
-                        showToast('❌ Gagal menyimpan: ' + (result.error?.message || 'Unknown error'), 'error');
+                let savedSuccessfully = false;
+                
+                // Coba simpan ke Data SDK dulu (jika tersedia)
+                if (window.dataSdk && sdkInitialized && !useLocalStorage) {
+                    try {
+                        // Cek limit
+                        if (allAnalysisData.length >= 999) {
+                            showToast('❌ Maksimal 999 data tercapai. Hapus beberapa data dulu.', 'error');
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerHTML = '💾 Simpan dan Analisis';
+                            return;
+                        }
+                        
+                        const result = await window.dataSdk.create(dataToSave);
+                        
+                        if (result.isOk) {
+                            savedSuccessfully = true;
+                            showToast('✅ Data tersimpan di Canva Sheet!', 'success');
+                        } else {
+                            console.warn('SDK save failed:', result.error);
+                            // Akan fallback ke localStorage
+                        }
+                    } catch (sdkError) {
+                        console.warn('SDK error:', sdkError);
+                        // Akan fallback ke localStorage
                     }
                 }
+                
+                // Fallback ke localStorage jika SDK gagal atau tidak tersedia
+                if (!savedSuccessfully) {
+                    try {
+                        allAnalysisData.push(dataToSave);
+                        localStorage.setItem('analisis_ulangan_data', JSON.stringify(allAnalysisData));
+                        renderHistory();
+                        savedSuccessfully = true;
+                        showToast('✅ Data tersimpan di browser lokal!', 'success');
+                    } catch (storageError) {
+                        console.error('localStorage error:', storageError);
+                        showToast('❌ Gagal menyimpan: ' + storageError.message, 'error');
+                    }
+                }
+                
+                if (savedSuccessfully) {
+                    document.getElementById('form-identitas').reset();
+                    showTab('history');
+                }
+                
             } catch (error) {
+                console.error('Save error:', error);
                 showToast('❌ Error: ' + error.message, 'error');
             }
 
@@ -1392,7 +1412,16 @@ Contoh:
                 }
             });
 
-            siswa.sort((a, b) => b.nilai - a.nilai);
+            // Urutkan berdasarkan abjad nama
+            siswa.sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+
+            // Hitung peringkat berdasarkan nilai (tertinggi = peringkat 1)
+            const siswaWithRank = siswa.map((s, idx) => ({ ...s, originalIndex: idx }));
+            siswaWithRank.sort((a, b) => b.nilai - a.nilai);
+            
+            siswaWithRank.forEach((s, idx) => {
+                siswa[s.originalIndex].peringkat = idx + 1;
+            });
 
             const nilaiArray = siswa.map(s => s.nilai);
             const rataRata = Math.round(nilaiArray.reduce((sum, val) => sum + val, 0) / nilaiArray.length);
@@ -1416,7 +1445,7 @@ Contoh:
             const parsed = parseDataSiswa(data);
             
             let html = '<div class="table-container"><table class="print-table"><thead><tr>';
-            html += '<th style="width: 40px;">Rank</th>';
+            html += '<th style="width: 40px;">No</th>';
             html += '<th>Nama Siswa</th>';
             html += '<th style="width: 100px;">Kelas</th>';
             
@@ -1425,18 +1454,18 @@ Contoh:
             }
             
             html += '<th style="width: 50px;">✓</th>';
-            html += '<th style="width: 50px;">  </th>';
+            html += '<th style="width: 50px;">��</th>';
             html += '<th style="width: 50px;">-</th>';
             html += '<th style="width: 70px;">Nilai</th>';
             html += '<th style="width: 80px;">Status</th>';
             html += '</tr></thead><tbody>';
 
             parsed.siswa.forEach((siswa, index) => {
-                const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
-                const rankBadge = `<span class="rank-badge ${rankClass}">${index + 1}</span>`;
+                const rankClass = siswa.peringkat === 1 ? 'rank-1' : siswa.peringkat === 2 ? 'rank-2' : siswa.peringkat === 3 ? 'rank-3' : 'rank-other';
+                const rankBadge = `<span class="rank-badge ${rankClass}">${siswa.peringkat}</span>`;
                 
                 html += '<tr>';
-                html += `<td style="text-align: center;">${rankBadge}</td>`;
+                html += `<td style="text-align: center;">${index + 1}</td>`;
                 html += `<td>${siswa.nama}</td>`;
                 html += `<td style="text-align: center;">${siswa.kelas}</td>`;
                 
@@ -1475,7 +1504,7 @@ Contoh:
                 
                 html += `<td style="text-align: center;" class="correct">${siswa.benar}</td>`;
                 html += `<td style="text-align: center;" class="incorrect">${siswa.salah}</td>`;
-                html += `<td style="text-align: center;">${siswa.kosong}</td>`;
+                html += `<td style="text-align: center;">${rankBadge}</td>`;
                 html += `<td style="text-align: center; font-weight: bold;">${siswa.nilai}</td>`;
                 html += `<td style="text-align: center;"><span class="${siswa.status === 'Tuntas' ? 'correct' : 'incorrect'}">${siswa.status}</span></td>`;
                 html += '</tr>';
@@ -1820,7 +1849,7 @@ Contoh:
             let html = `
                 <div class="print-export-btn">
                     <button class="btn btn-primary" onclick="printLaporan()" style="font-size: 16px; padding: 15px 30px;">
-                          ️ CETAK
+                        ���️ CETAK
                     </button>
                     <p style="margin: 10px 0 0 0; color: #718096; font-size: 13px;">Klik untuk membuka preview cetak (Ctrl+P)</p>
                 </div>
@@ -1832,7 +1861,7 @@ Contoh:
                             <div class="print-cover-logo">
                                 <img src="https://iili.io/KpcMBzQ.png" alt="Logo Sekolah" style="width: 120px; height: auto;" onerror="this.style.display='none';">
                             </div>
-                            <div class="print-cover-title">LAPORAN ANALISIS SOAL DAN JAWABAN</div>
+                            <div class="print-cover-title">LAPORAN ANALISIS ULANGAN HARIAN</div>
                             <div class="print-cover-subtitle">${data.mapel}</div>
                             <div class="print-cover-subtitle">Kelas ${data.kelas}</div>
                             
@@ -1939,7 +1968,7 @@ Contoh:
             html += `
                                 <th style="width: 30px;">✓</th>
                                 <th style="width: 30px;">✗</th>
-                                <th style="width: 30px;">-</th>
+                                <th style="width: 30px;">Rank</th>
                                 <th style="width: 40px;">Nilai</th>
                                 <th style="width: 50px;">Status</th>
                             </tr>
@@ -1991,7 +2020,7 @@ Contoh:
                 html += `
                     <td style="text-align: center; color: #48bb78; font-weight: bold;">${siswa.benar}</td>
                     <td style="text-align: center; color: #f56565; font-weight: bold;">${siswa.salah}</td>
-                    <td style="text-align: center;">${siswa.kosong}</td>
+                    <td style="text-align: center; font-weight: bold;">${siswa.peringkat}</td>
                     <td style="text-align: center; font-weight: bold;">${siswa.nilai}</td>
                     <td style="text-align: center; font-weight: bold; ${siswa.status === 'Tuntas' ? 'color: #48bb78;' : 'color: #f56565;'}">${siswa.status}</td>
                 </tr>`;
@@ -2421,7 +2450,7 @@ Contoh:
                     const sheetJawaban = workbook.Sheets[workbook.SheetNames[2]];
                     const siswaData = XLSX.utils.sheet_to_json(sheetJawaban, { header: 1, defval: null, raw: false, blankrows: false });
 
-                    console.log('👥 Sheet 3 (Jawaban) - Total baris:', siswaData.length);
+                    console.log('��� Sheet 3 (Jawaban) - Total baris:', siswaData.length);
 
                     if (!siswaData || siswaData.length < 2) {
                         showToast('❌ Sheet 3 (Jawaban) harus memiliki minimal 2 baris: Header + Data!', 'error');
@@ -2507,7 +2536,7 @@ Contoh:
                     inputKD.value = formattedKD.trim();
                     inputSiswa.value = formattedSiswa.trim();
                     
-                    console.log('📋 DISTRIBUSI DATA:');
+                    console.log('�� DISTRIBUSI DATA:');
                     console.log('   → Field Kunci:', inputKunci.id, '=', inputKunci.value.substring(0, 50) + '...');
                     console.log('   → Field KD:', inputKD.id, '= ', inputKD.value.split('\n').length, 'baris');
                     console.log('   → Field Siswa:', inputSiswa.id, '=', inputSiswa.value.split('\n').length, 'baris');
@@ -2544,7 +2573,7 @@ Contoh:
 
             const previewContent = document.querySelector('.print-preview').innerHTML;
             
-            const printHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cetak Laporan Analisis</title><style>body{margin:0;padding:0;background:white;font-family:"Times New Roman",Times,serif;}.print-page{width:210mm;min-height:297mm;padding:20mm;margin:0 auto;background:white;page-break-after:always;position:relative;}.print-cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:257mm;border:3px solid #667eea;padding:40px;}.print-cover-logo{margin-bottom:30px;}.print-cover-logo img{width:120px;height:auto;}.print-cover-title{font-size:28px;font-weight:bold;color:#667eea;margin:20px 0;}.print-cover-subtitle{font-size:22px;color:#764ba2;margin:15px 0;font-weight:600;}.print-cover-info{margin-top:40px;font-size:16px;line-height:2;}.print-cover-info p{margin:10px 0;}.print-content-page{font-size:12px;font-family:"Times New Roman",Times,serif;}.print-content-page h3{font-size:16px;text-align:center;color:#667eea;margin:0 0 15px 0;padding-bottom:5px;border-bottom:2px solid #667eea;}.print-content-page h4{font-size:14px;color:#667eea;margin:15px 0 10px 0;}.print-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;font-family:"Times New Roman",Times,serif;}.print-table th,.print-table td{border:1px solid #333;padding:4px;text-align:left;}.print-table th{background:#667eea;color:white;font-weight:bold;text-align:center;}.print-info-box{background:#f7fafc;padding:10px;margin:10px 0;border-left:4px solid #667eea;font-size:12px;font-family:"Times New Roman",Times,serif;}.print-info-box p{margin:5px 0;}.print-signature{margin-top:40px;display:flex;justify-content:space-between;font-size:12px;font-family:"Times New Roman",Times,serif;}.print-signature-left,.print-signature-right{text-align:center;width:45%;}.print-signature-name{margin-top:60px;font-weight:bold;text-decoration:underline;}@media print{body{background:white;}.print-page{margin:0;page-break-after:always;}}</style></head><body>' + previewContent + '<script>window.onload=function(){window.print();};<\/script></body></html>';
+            const printHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cetak Laporan Analisis</title><style>body{margin:0;padding:0;background:white;font-family:"Times New Roman",Times,serif;}.print-page{width:210mm;min-height:297mm;padding:20mm;margin:0 auto;background:white;page-break-after:always;position:relative;}.print-cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:257mm;border:3px solid #667eea;padding:40px;}.print-cover-logo{margin-bottom:30px;}.print-cover-logo img{width:120px;height:auto;}.print-cover-title{font-size:28px;font-weight:bold;color:#667eea;margin:20px 0;}.print-cover-subtitle{font-size:22px;color:#764ba2;margin:15px 0;font-weight:600;}.print-cover-info{margin-top:40px;font-size:16px;line-height:2;}.print-cover-info p{margin:10px 0;}.print-content-page{font-size:14px;font-family:"Times New Roman",Times,serif;}.print-content-page h3{font-size:18px;text-align:center;color:#667eea;margin:0 0 15px 0;padding-bottom:5px;border-bottom:2px solid #667eea;}.print-content-page h4{font-size:16px;color:#667eea;margin:15px 0 10px 0;}.print-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px;font-family:"Times New Roman",Times,serif;}.print-table th,.print-table td{border:1px solid #333;padding:4px;text-align:left;}.print-table th{background:#667eea;color:white;font-weight:bold;text-align:center;}.print-info-box{background:#f7fafc;padding:10px;margin:10px 0;border-left:4px solid #667eea;font-size:13px;font-family:"Times New Roman",Times,serif;}.print-info-box p{margin:5px 0;}.print-signature{margin-top:40px;display:flex;justify-content:space-between;font-size:13px;font-family:"Times New Roman",Times,serif;}.print-signature-left,.print-signature-right{text-align:center;width:45%;}.print-signature-name{margin-top:60px;font-weight:bold;text-decoration:underline;}@media print{body{background:white;}.print-page{margin:0;page-break-after:always;}}</style></head><body>' + previewContent + '<script>window.onload=function(){window.print();};<\/script></body></html>';
             
             printWindow.document.write(printHTML);
             printWindow.document.close();
@@ -2570,7 +2599,5 @@ Contoh:
             }
         });
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a360b392492fcff',t:'MTc2Mzk1NzI5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a4f5e978180c579',t:'MTc2NDIyMjg1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
